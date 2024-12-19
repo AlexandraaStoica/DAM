@@ -1,0 +1,88 @@
+//https://api.npoint.io/efcea1d46c36fa555d04
+
+import androidx.annotation.NonNull;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Date;
+
+public class BookParser {
+    // Constants for JSON keys
+    private static final String DETAILS = "details";
+    private static final String DATASETS = "datasets";
+    private static final String CARTE = "carte";
+    private static final String NAME = "name";
+    private static final String NB_PAGES = "nbPages";
+    private static final String PUBLISH_DATE = "publishDate";
+
+    // Book model class to match the JSON structure
+    public static class Book {
+        private String name;
+        private int nbPages;
+        private Date publishDate;
+
+        public Book(String name, int nbPages, Date publishDate) {
+            this.name = name;
+            this.nbPages = nbPages;
+            this.publishDate = publishDate;
+        }
+
+        // Getters
+        public String getName() { return name; }
+        public int getNbPages() { return nbPages; }
+        public Date getPublishDate() { return publishDate; }
+
+        @Override
+        public String toString() {
+            return "Book{" +
+                    "name='" + name + '\'' +
+                    ", nbPages=" + nbPages +
+                    ", publishDate=" + publishDate +
+                    '}';
+        }
+    }
+
+    public static List<Book> fromJson(String json) {
+        List<Book> results = new ArrayList<>();
+        try {
+            JSONObject rootObject = new JSONObject(json);
+            JSONObject details = rootObject.getJSONObject(DETAILS);
+            JSONArray datasetsArray = details.getJSONArray(DATASETS);
+
+            // Iterate through each dataset
+            for (int i = 0; i < datasetsArray.length(); i++) {
+                JSONObject dataset = datasetsArray.getJSONObject(i);
+                // Check if this dataset has a "carte" object
+                if (dataset.has(CARTE)) {
+                    try {
+                        Book book = getBookFromJson(dataset.getJSONObject(CARTE));
+                        results.add(book);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        // Continue with next dataset if this one fails
+                        continue;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    @NonNull
+    private static Book getBookFromJson(JSONObject carteObject) throws JSONException {
+        // Parse name
+        String name = carteObject.getString(NAME);
+
+        // Parse number of pages
+        int nbPages = carteObject.getInt(NB_PAGES);
+
+        // Parse publish date
+        Date publishDate = DateConverter.toDate(carteObject.getString(PUBLISH_DATE));
+
+        return new Book(name, nbPages, publishDate);
+    }
+}
