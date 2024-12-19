@@ -1,0 +1,104 @@
+//https://api.npoint.io/5b2a9af3a9e1874bdc4d
+
+package com.example.damjson;
+
+import androidx.annotation.NonNull;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public class ExamParser {
+    // Constants for JSON keys
+    public static final String VALUES = "values";
+    public static final String DATA = "data";
+    public static final String DATE = "date";
+    public static final String COURSE = "course";
+    public static final String CLASSROOM = "classroom";
+    public static final String SUPERVISOR = "supervisor";
+    public static final String NUMBER_OF_STUDENTS = "numarStudenti";
+
+    // Exam model class to match the JSON structure
+    public static class Exam {
+        private Date date;
+        private String course;
+        private String classroom;
+        private String supervisor;
+        private String numberOfStudents;
+
+        public Exam(Date date, String course, String classroom, String supervisor, String numberOfStudents) {
+            this.date = date;
+            this.course = course;
+            this.classroom = classroom;
+            this.supervisor = supervisor;
+            this.numberOfStudents = numberOfStudents;
+        }
+
+        // Getters
+        public Date getDate() { return date; }
+        public String getCourse() { return course; }
+        public String getClassroom() { return classroom; }
+        public String getSupervisor() { return supervisor; }
+        public String getNumberOfStudents() { return numberOfStudents; }
+
+        @Override
+        public String toString() {
+            return "Exam{" +
+                    "date=" + date +
+                    ", course='" + course + '\'' +
+                    ", classroom='" + classroom + '\'' +
+                    ", supervisor='" + supervisor + '\'' +
+                    ", numberOfStudents='" + numberOfStudents + '\'' +
+                    '}';
+        }
+    }
+
+    public static List<Exam> fromJson(String json) {
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray valuesArray = jsonObject.getJSONArray(VALUES);
+            return getExamsFromJsonArray(valuesArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    @NonNull
+    private static List<Exam> getExamsFromJsonArray(JSONArray array) throws JSONException {
+        List<Exam> results = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.getJSONObject(i);
+            Exam exam = getExamFromJson(object);
+            results.add(exam);
+        }
+        return results;
+    }
+
+    @NonNull
+    private static Exam getExamFromJson(JSONObject object) throws JSONException {
+        // Extract the "data" object
+        JSONObject dataObject = object.getJSONObject(DATA);
+
+        // Parse date
+        Date date = DateConverter.toDate(dataObject.getString(DATE));
+
+        // Parse course
+        String course = dataObject.getString(COURSE);
+
+        // Parse classroom
+        String classroom = dataObject.getString(CLASSROOM);
+
+        // Parse supervisor
+        String supervisor = dataObject.getString(SUPERVISOR);
+
+        // Parse number of students (optional)
+        String numberOfStudents = dataObject.optString(NUMBER_OF_STUDENTS, "N/A");
+
+        return new Exam(date, course, classroom, supervisor, numberOfStudents);
+    }
+}
