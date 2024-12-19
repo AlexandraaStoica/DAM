@@ -74,13 +74,8 @@ public class BookParser {
 
     @NonNull
     private static Book getBookFromJson(JSONObject carteObject) throws JSONException {
-        // Parse name
         String name = carteObject.getString(NAME);
-
-        // Parse number of pages
         int nbPages = carteObject.getInt(NB_PAGES);
-
-        // Parse publish date
         Date publishDate = DateConverter.toDate(carteObject.getString(PUBLISH_DATE));
 
         return new Book(name, nbPages, publishDate);
